@@ -9,9 +9,9 @@ ItemData* Item_GetData(uint16_t itemId)
 {
     ItemData* table;
 
-    if (itemId >= 0x200)
+    if (itemId >= 0x140)
     {
-        itemId -= 0x200;
+        itemId -= 0x140;
         table = sExtraItems;
     }
     else if (itemId >= 0x100)
@@ -36,7 +36,7 @@ uint16_t Item_Alloc(void)
         sExtraItemCapacity *= 2;
         sExtraItems = realloc(sExtraItems, sizeof(ItemData) * sExtraItemCapacity);
     }
-    id = 0x200 + sExtraItemCount;
+    id = 0x140 + sExtraItemCount;
     sExtraItemCount++;
     return id;
 }
