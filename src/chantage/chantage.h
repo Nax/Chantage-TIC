@@ -37,7 +37,8 @@ typedef struct
     uint8_t unk2;
 } ItemData;
 
-/* Init */
+/* Items */
 void Init_Items(void);
+ItemData* Item_GetData(uint16_t itemId);
 
 #endif
