@@ -36,16 +36,15 @@ HWND CreateWindowExA_HOOK(
     return CreateWindowExA(dwExStyle, lpClassName, lpWindowName, dwStyle, X, Y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
 }
 
+BOOL IsDebuggerPresent_HOOK(void)
+{
+    return FALSE;
+}
+
 static void setupHooks(void)
 {
-    DWORD oldProtect;
-    void** pCreateWindowExA;
-    void** pCreateProcessA;
-
-    pCreateWindowExA = (void**)ResolveModulePtr(0x14060c840);
-    VirtualProtect(pCreateWindowExA, sizeof(void*), PAGE_EXECUTE_READWRITE, &oldProtect);
-    *pCreateWindowExA = (void*)&CreateWindowExA_HOOK;
-    VirtualProtect(pCreateWindowExA, sizeof(void*), oldProtect, &oldProtect);
+    WriteProtectedRel64(0x60c840, (uint64_t)&CreateWindowExA_HOOK);
+    WriteProtectedRel64(0x60c320, (uint64_t)&IsDebuggerPresent_HOOK);
 }
 
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
