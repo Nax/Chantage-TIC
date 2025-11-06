@@ -3,7 +3,7 @@
 
 static void ChantageInitImpl(void)
 {
-    MessageBoxA(NULL, "Chantage initialized!", "Chantage", MB_OK);
+    Init_Items();
 }
 
 void ChantageInit(void)

@@ -1,5 +1,5 @@
 #include <windows.h>
-#include <stdint.h>
+#include <chantage/chantage.h>
 
 static void* sBaseAddr;
 
@@ -71,4 +71,18 @@ void WriteProtectedRel8(uint32_t off, uint8_t val)
 {
     void* dst = BaseRelPtr(off);
     WriteProtected8(dst, val);
+}
+
+void HookFunction(void* target, void* hook)
+{
+    uint8_t buf[14] = {0xff, 0x25};
+    uint64_t addr = (uint64_t)hook;
+    memcpy(buf + 6, &addr, sizeof(uint64_t));
+
+    WriteProtected(target, buf, sizeof(buf));
+}
+
+void HookFunctionRel(uint32_t off, void* hook)
+{
+    HookFunction(BaseRelPtr(off), hook);
 }

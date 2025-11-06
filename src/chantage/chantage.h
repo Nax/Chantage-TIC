@@ -19,4 +19,25 @@ void WriteProtectedRel32(uint32_t off, uint32_t val);
 void WriteProtectedRel16(uint32_t off, uint16_t val);
 void WriteProtectedRel8(uint32_t off, uint8_t val);
 
+void HookFunction(void* target, void* hook);
+void HookFunctionRel(uint32_t off, void* hook);
+
+typedef struct
+{
+    uint8_t palette;
+    uint8_t gfx;
+    uint8_t level;
+    uint8_t flags;
+    uint8_t unk0;
+    uint8_t type;
+    uint8_t unk1;
+    uint8_t attrId;
+    uint16_t price;
+    uint8_t shop;
+    uint8_t unk2;
+} ItemData;
+
+/* Init */
+void Init_Items(void);
+
 #endif
