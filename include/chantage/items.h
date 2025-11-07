@@ -108,23 +108,18 @@ typedef struct
 }
 ItemChemistData;
 
-typedef struct
+typedef union
 {
-    ItemData base;
-    union
-    {
-        ItemWeaponData    weapon;
-        ItemShieldData    shield;
-        ItemArmorData     armor;
-        ItemAccessoryData accessory;
-        ItemChemistData   chemist;
-    };
+    ItemWeaponData     weapon;
+    ItemShieldData     shield;
+    ItemArmorData      armor;
+    ItemAccessoryData  accessory;
+    ItemChemistData    chemist;
 }
-ItemExtendedData;
+ItemSubData;
 
 void Init_Items(void);
 
-ItemExtendedData*   Item_GetExtendedData(uint16_t itemId);
 ItemData*           Item_GetData(uint16_t itemId);
 int                 Item_GetCategory(uint16_t itemId);
 ItemWeaponData*     Item_GetWeaponData(uint16_t itemId);
