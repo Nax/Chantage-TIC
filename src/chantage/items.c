@@ -2,137 +2,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-#if 0
-static int sItemCount;
-static int sItemCapacity;
-static ItemExtendedData* sItems;
-
-static void Item_PatchCount(void)
-{
-    uint8_t countLea;
-    countLea = sItemCount - 0xff;
-
-    /* Beware, this is probably a signed offset */
-    WriteProtectedRel8(0x280ba6, countLea);
-}
-
-ItemWeaponData* Item_GetWeaponData(uint16_t itemId)
-{
-    int cat;
-
-    //cat = Item_GetCategory(itemId);
-    //if (cat != ITEM_CATEGORY_WEAPON && cat != ITEM_CATEGORY_THROW)
-    //    return NULL;
-    return &sItems[itemId].weapon;
-}
-
-ItemShieldData* Item_GetShieldData(uint16_t itemId)
-{
-    //if (Item_GetCategory(itemId) != ITEM_CATEGORY_SHIELD)
-    //    return NULL;
-    return &sItems[itemId].shield;
-}
-
-ItemArmorData* Item_GetArmorData(uint16_t itemId)
-{
-    int cat;
-
-    //cat = Item_GetCategory(itemId);
-    //if (cat != ITEM_CATEGORY_HELM && cat != ITEM_CATEGORY_ARMOR)
-    //    return NULL;
-    return &sItems[itemId].armor;
-}
-
-ItemAccessoryData* Item_GetAccessoryData(uint16_t itemId)
-{
-    //if (Item_GetCategory(itemId) != ITEM_CATEGORY_ACCESSORY)
-    //    return NULL;
-    return &sItems[itemId].accessory;
-}
-
-ItemChemistData* Item_GetChemistData(uint16_t itemId)
-{
-    //if (Item_GetCategory(itemId) != ITEM_CATEGORY_CHEMIST)
-    //    return NULL;
-    return &sItems[itemId].chemist;
-}
-
-uint16_t Item_Alloc(void)
-{
-    uint16_t id;
-
-    if (sItemCount >= sItemCapacity)
-    {
-        sItemCapacity = sItemCapacity + sItemCapacity / 2;
-        sItems = realloc(sItems, sizeof(ItemExtendedData) * sItemCapacity);
-    }
-
-    id = sItemCount;
-    memset(&sItems[id], 0, sizeof(ItemExtendedData));
-    sItemCount++;
-
-    Item_PatchCount();
-
-    return id;
-}
-
-/* Should be changed into a mod eventually*/
-static void AddWotlItems(void)
-{
-    ItemData* item;
-    uint16_t itemId;
-
-    /* Vanguard helm */
-    itemId = Item_Alloc();
-    item = Item_GetData(itemId);
-    item->palette = 3;
-    item->gfx = 0x55;
-    item->flags = 0x22;
-    item->price = 10;
-    item->type = ITEM_TYPE_HELMET;
-    item->shop = 0x14;
-}
-
-static void LoadItems(void)
-{
-    ItemData* srcItems;
-
-    /* Alloc the new item table */
-    sItemCount = 0x140;
-    sItemCapacity = 0x140;
-    sItems = malloc(sizeof(ItemExtendedData) * sItemCapacity);
-    memset(sItems, 0, sizeof(ItemExtendedData) * sItemCapacity);
-
-    /* Copy the existing items */
-    srcItems = BaseRelPtr(0x808740);
-    for (int i = 0; i < 0x100; ++i)
-        memcpy(&sItems[i].base, &srcItems[i], sizeof(ItemData));
-    srcItems = BaseRelPtr(0x67b470);
-    for (int i = 0; i < 5; ++i)
-        memcpy(&sItems[i + 0x100].base, &srcItems[i], sizeof(ItemData));
-}
-
-void Init_Items(void)
-{
-    LoadItems();
-    //AddWotlItems();
-
-    HookFunctionRel(0x02b4980, (void*)Item_GetData);
-    HookFunctionRel(0xe978db8, (void*)Item_GetCategory);
-    //HookFunctionRel(0xe9983d0, (void*)Item_GetWeaponData);
-    //HookFunctionRel(0xe99fff0, (void*)Item_GetShieldData);
-    //HookFunctionRel(0xe9da940, (void*)Item_GetChemistData);
-    //HookFunctionRel(0xe9bae08, (void*)Item_GetArmorData);
-    //HookFunctionRel(0xe9d490e, (void*)Item_GetAccessoryData);
-}
-#endif
-
 static ItemData sItems[256];
 static ItemSubData sItemSubData[256];
+static uint16_t sItemsCount = 0x105;
 
 static ItemData* Item_GetData(uint16_t itemId)
 {
-    if (itemId >= 0x105)
+    if (itemId >= sItemsCount)
         return NULL;
     return &sItems[itemId];
 }
@@ -177,20 +53,6 @@ ItemChemistData* Item_GetChemistData(uint16_t itemId)
         return NULL;
     return &sItemSubData[itemId].chemist;
 }
-
-static void LoadItems(void)
-{
-    ItemData* srcItems;
-
-    /* Copy the existing items */
-    srcItems = BaseRelPtr(0x808740);
-    for (int i = 0; i < 0x100; ++i)
-        memcpy(&sItems[i], &srcItems[i], sizeof(ItemData));
-    srcItems = BaseRelPtr(0x67b470);
-    for (int i = 0; i < 5; ++i)
-        memcpy(&sItems[i + 0x100], &srcItems[i], sizeof(ItemData));
-}
-
 
 int Item_GetCategory(uint16_t itemId)
 {
@@ -251,10 +113,58 @@ int Item_GetCategory(uint16_t itemId)
     }
 }
 
+static void Item_PatchCount(void)
+{
+    uint8_t countLea;
+    countLea = sItemsCount - 0xff;
+
+    /* Beware, this is probably a signed offset */
+    WriteProtectedRel8(0x280ba6, countLea);
+}
+
+uint16_t Item_Alloc(void)
+{
+    uint16_t id;
+
+    id = sItemsCount++;
+    Item_PatchCount();
+
+    return id;
+}
+
+static void LoadItems(void)
+{
+    ItemData* srcItems;
+
+    /* Copy the existing items */
+    srcItems = BaseRelPtr(0x808740);
+    for (int i = 0; i < 0x100; ++i)
+        memcpy(&sItems[i], &srcItems[i], sizeof(ItemData));
+    srcItems = BaseRelPtr(0x67b470);
+    for (int i = 0; i < 5; ++i)
+        memcpy(&sItems[i + 0x100], &srcItems[i], sizeof(ItemData));
+}
+
+static void AddWotlItems(void)
+{
+    ItemData* item;
+    uint16_t itemId;
+
+    /* Vanguard helm */
+    itemId = Item_Alloc();
+    item = Item_GetData(itemId);
+    item->palette = 3;
+    item->gfx = 0x55;
+    item->flags = 0x22;
+    item->price = 10;
+    item->type = ITEM_TYPE_HELMET;
+    item->shop = 0x14;
+}
+
 void Init_Items(void)
 {
     LoadItems();
-    //AddWotlItems();
+    AddWotlItems();
 
     HookFunctionRel(0x02b4980, (void*)Item_GetData);
     HookFunctionRel(0xe978db8, (void*)Item_GetCategory);
