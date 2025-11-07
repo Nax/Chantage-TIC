@@ -2,6 +2,8 @@
 #include <stdint.h>
 #include <chantage/chantage.h>
 
+void ChantageInit(void);
+
 static HWND (*CreateWindowExA_Original)(
   DWORD     dwExStyle,
   LPCSTR    lpClassName,
