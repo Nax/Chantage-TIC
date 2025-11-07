@@ -3,12 +3,14 @@
 
 #include <chantage/types.h>
 
-#define ITEM_CATEGORY_NONE          0
-#define ITEM_CATEGORY_WEAPON        1
+#define ITEM_CATEGORY_NONE          (-1)
+#define ITEM_CATEGORY_WEAPON        0
+#define ITEM_CATEGORY_THROW         1
 #define ITEM_CATEGORY_SHIELD        2
-#define ITEM_CATEGORY_ARMOR         3
-#define ITEM_CATEGORY_ACCESSORY     4
-#define ITEM_CATEGORY_CHEMIST       5
+#define ITEM_CATEGORY_HELM          3
+#define ITEM_CATEGORY_ARMOR         4
+#define ITEM_CATEGORY_ACCESSORY     5
+#define ITEM_CATEGORY_CHEMIST       6
 
 #define ITEM_TYPE_NONE          0x00
 #define ITEM_TYPE_KNIFE         0x01
@@ -61,6 +63,8 @@ typedef struct
     u8  unk2;
 }
 ItemData;
+
+_Static_assert(sizeof(ItemData) == 0x0c, "ItemData size incorrect");
 
 typedef struct
 {

@@ -63,14 +63,16 @@ int Item_GetCategory(uint16_t itemId)
     case ITEM_TYPE_POLE:
     case ITEM_TYPE_BAG:
     case ITEM_TYPE_CLOTH:
+        return ITEM_CATEGORY_WEAPON;
     case ITEM_TYPE_THROWING:
     case ITEM_TYPE_BOMB:
-        return ITEM_CATEGORY_WEAPON;
+        return ITEM_CATEGORY_THROW;
     case ITEM_TYPE_SHIELD:
         return ITEM_CATEGORY_SHIELD;
     case ITEM_TYPE_HELMET:
     case ITEM_TYPE_HAT:
     case ITEM_TYPE_HAIRADORN:
+        return ITEM_CATEGORY_HELM;
     case ITEM_TYPE_ARMOR:
     case ITEM_TYPE_CLOTHING:
     case ITEM_TYPE_ROBE:
@@ -91,36 +93,42 @@ int Item_GetCategory(uint16_t itemId)
 
 ItemWeaponData* Item_GetWeaponData(uint16_t itemId)
 {
-    if (Item_GetCategory(itemId) != ITEM_CATEGORY_WEAPON)
-        return NULL;
+    int cat;
+
+    //cat = Item_GetCategory(itemId);
+    //if (cat != ITEM_CATEGORY_WEAPON && cat != ITEM_CATEGORY_THROW)
+    //    return NULL;
     return &sItems[itemId].weapon;
 }
 
 ItemShieldData* Item_GetShieldData(uint16_t itemId)
 {
-    if (Item_GetCategory(itemId) != ITEM_CATEGORY_SHIELD)
-        return NULL;
+    //if (Item_GetCategory(itemId) != ITEM_CATEGORY_SHIELD)
+    //    return NULL;
     return &sItems[itemId].shield;
 }
 
 ItemArmorData* Item_GetArmorData(uint16_t itemId)
 {
-    if (Item_GetCategory(itemId) != ITEM_CATEGORY_ARMOR)
-        return NULL;
+    int cat;
+
+    //cat = Item_GetCategory(itemId);
+    //if (cat != ITEM_CATEGORY_HELM && cat != ITEM_CATEGORY_ARMOR)
+    //    return NULL;
     return &sItems[itemId].armor;
 }
 
 ItemAccessoryData* Item_GetAccessoryData(uint16_t itemId)
 {
-    if (Item_GetCategory(itemId) != ITEM_CATEGORY_ACCESSORY)
-        return NULL;
+    //if (Item_GetCategory(itemId) != ITEM_CATEGORY_ACCESSORY)
+    //    return NULL;
     return &sItems[itemId].accessory;
 }
 
 ItemChemistData* Item_GetChemistData(uint16_t itemId)
 {
-    if (Item_GetCategory(itemId) != ITEM_CATEGORY_CHEMIST)
-        return NULL;
+    //if (Item_GetCategory(itemId) != ITEM_CATEGORY_CHEMIST)
+    //    return NULL;
     return &sItems[itemId].chemist;
 }
 
@@ -135,7 +143,7 @@ uint16_t Item_Alloc(void)
     }
 
     id = sItemCount;
-    memset(&sItems[id], 0, sizeof(ItemData));
+    memset(&sItems[id], 0, sizeof(ItemExtendedData));
     sItemCount++;
 
     Item_PatchCount();
@@ -174,13 +182,21 @@ static void LoadItems(void)
     srcItems = BaseRelPtr(0x808740);
     for (int i = 0; i < 0x100; ++i)
         memcpy(&sItems[i].base, &srcItems[i], sizeof(ItemData));
-    srcItems = BaseRelPtr(0x67a870);
-    for (int i = 0x100; i < 0x105; ++i)
-        memcpy(&sItems[i].base, &srcItems[i - 0x100], sizeof(ItemData));
+    //srcItems = BaseRelPtr(0x67a870);
+    //for (int i = 0x100; i < 0x105; ++i)
+    //    memcpy(&sItems[i].base, &srcItems[i - 0x100], sizeof(ItemData));
 }
 
 void Init_Items(void)
 {
     LoadItems();
+    //AddWotlItems();
+
     HookFunctionRel(0x02b4980, (void*)Item_GetData);
+    HookFunctionRel(0xe978db8, (void*)Item_GetCategory);
+    HookFunctionRel(0xe9983d0, (void*)Item_GetWeaponData);
+    HookFunctionRel(0xe99fff0, (void*)Item_GetShieldData);
+    HookFunctionRel(0xe9da940, (void*)Item_GetChemistData);
+    HookFunctionRel(0xe9bae08, (void*)Item_GetArmorData);
+    HookFunctionRel(0xe9d490e, (void*)Item_GetAccessoryData);
 }

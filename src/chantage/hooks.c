@@ -75,9 +75,8 @@ void WriteProtectedRel8(uint32_t off, uint8_t val)
 
 void HookFunction(void* target, void* hook)
 {
-    uint8_t buf[14] = {0xff, 0x25};
-    uint64_t addr = (uint64_t)hook;
-    memcpy(buf + 6, &addr, sizeof(uint64_t));
+    uint8_t buf[14] = {0xff, 0x25, 0x00, 0x00, 0x00, 0x00};
+    memcpy(buf + 6, &hook, sizeof(void*));
 
     WriteProtected(target, buf, sizeof(buf));
 }
