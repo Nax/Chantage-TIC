@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-static ItemData sItems[256];
-static ItemSubData sItemSubData[256];
+static ItemData sItems[512];
+static ItemSubData sItemSubData[512];
 static uint16_t sItemsCount = 0x105;
 
 static ItemData* Item_GetData(uint16_t itemId)
