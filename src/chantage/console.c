@@ -345,19 +345,9 @@ static void Console_Open(void)
 
     if (sConsoleWindow)
     {
-        // Set 50% transparency (128 out of 255)
         SetLayeredWindowAttributes(sConsoleWindow, 0, 128, LWA_ALPHA);
         ShowWindow(sConsoleWindow, SW_SHOW);
-
-        // Attach console input to game's thread for proper keyboard state
-        DWORD gameThreadId = GetWindowThreadProcessId(gGameWindow, NULL);
-        DWORD consoleThreadId = GetWindowThreadProcessId(sConsoleWindow, NULL);
-        if (gameThreadId != consoleThreadId)
-        {
-            AttachThreadInput(consoleThreadId, gameThreadId, TRUE);
-        }
-
-        SetFocus(sConsoleWindow); // Steal focus from game
+        SetFocus(sConsoleWindow);
         UpdateWindow(sConsoleWindow);
     }
 }
@@ -369,14 +359,6 @@ static void Console_Close(void)
 
     if (sConsoleWindow)
     {
-        // Detach input before destroying
-        DWORD gameThreadId = GetWindowThreadProcessId(gGameWindow, NULL);
-        DWORD consoleThreadId = GetWindowThreadProcessId(sConsoleWindow, NULL);
-        if (gameThreadId != consoleThreadId)
-        {
-            AttachThreadInput(consoleThreadId, gameThreadId, FALSE);
-        }
-
         DestroyWindow(sConsoleWindow);
         sConsoleWindow = NULL;
 
@@ -423,6 +405,5 @@ void Init_Console(void)
     Console_RegisterClass();
     SetWindowsHookExA(WH_KEYBOARD_LL, ConsoleKeyboardProc, GetModuleHandleA(NULL), 0);
 
-    Console_WriteLineWide(L"Console initialized");
-    Console_WriteLineWide(L"This is a test!");
+    Console_WriteLineWide(L"Chantage Lua Console");
 }
