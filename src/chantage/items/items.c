@@ -6,13 +6,67 @@
 
 #define ITEM_COUNT 0x200
 
+static uint16_t sItemsCount = 0x105;
 static ItemData sItems[ITEM_COUNT];
 static ItemSubData sItemSubData[ITEM_COUNT];
 static char* sItemDescriptionOverrides[ITEM_COUNT];
 static char* sItemNameOverride[ITEM_COUNT];
-static uint16_t sItemsCount = 0x105;
-
 static u8* gInventoryItemQuantity;
+
+static const char* kVanillaKeys[] = {
+    "fft:none",
+    "fft:dagger",
+    "fft:mythril_knife",
+    "fft:blind_knife",
+    "fft:mage_masher",
+    "fft:platinum_dagger",
+    "fft:main_gauche",
+    "fft:orichalcum_dirk",
+    "fft:assassins_dagger",
+    "fft:air_knife",
+    "fft:zwil_straightblade",
+    "fft:ninja_blade",
+    "fft:kunai",
+    "fft:kodachi",
+    "fft:ninja_longblade",
+    "fft:spellbinder",
+    "fft:sasukes_blade",
+    "fft:iga_blade",
+    "fft:koga_blade",
+    "fft:broadsword",
+    "fft:longsword",
+    "fft:iron_sword",
+    "fft:mythril_sword",
+    "fft:blood_sword",
+    "fft:coral_sword",
+    "fft:ancient_sword",
+    "fft:sleep_blade",
+    "fft:platinum_sword",
+    "fft:diamond_sword",
+    "fft:icebrand",
+    "fft:runeblade",
+    "fft:nagnarok",
+    "fft:materia_blade",
+    "fft:defender",
+    "fft:save_the_queen",
+    "fft:excalibur",
+    "fft:ragnarok",
+    "fft:chaos_blade",
+    "fft:ashura",
+    "fft:kotesu",
+    "fft:osafune",
+    "fft:murasame",
+    "fft:ama_no_murakumo",
+    "fft:kiyomori",
+    "fft:murasama",
+    "fft:kiku_ichimonji",
+    "fft:masamune",
+    "fft:chirijiraden",
+    "fft:battle_axe",
+    "fft:giants_axe",
+    "fft_slasher",
+    "fft:rod",
+};
 
 typedef struct
 {
@@ -358,35 +412,6 @@ static void HookItemQuantity(void)
     Hook_InstrRefBase32Rel(0x0275063, gInventoryItemQuantity, 9);
 }
 
-void Init_Items(void)
-{
-    void* Item_GetDatabaseEntryTrampoline;
-
-    LoadItems();
-    AddWotlItems();
-
-    Item_GetDatabaseEntryTrampoline = Hook_CreateTrampoline(Item_GetDatabaseEntry);
-
-    HookFunctionRel(0xe9f8a78, Item_IsValid);
-    HookFunctionRel(0x02b4980, Item_GetData);
-    HookFunctionRel(0xe978db8, Item_GetCategory);
-    HookFunctionRel(0xe9983d0, Item_GetWeaponData);
-    HookFunctionRel(0xe99fff0, Item_GetShieldData);
-    HookFunctionRel(0xe9da940, Item_GetChemistData);
-    HookFunctionRel(0xe9bae08, Item_GetArmorData);
-    HookFunctionRel(0xe9d490e, Item_GetAccessoryData);
-    HookFunctionRel(0x02b4668, Item_GetName);
-
-    Hook_Call32Rel(0x1081dd, Item_GetDatabaseEntryTrampoline);
-    Hook_Call32Rel(0x29b849, Item_GetDatabaseEntryTrampoline);
-    Hook_Call32Rel(0x29cbcc, Item_GetDatabaseEntryTrampoline);
-    Hook_Call32Rel(0x2c3c39, Item_GetDatabaseEntryTrampoline);
-    Hook_Call32Rel(0x2f0690, Item_GetDatabaseEntryTrampoline);
-    Hook_Call32Rel(0x2f069b, Item_GetDatabaseEntryTrampoline);
-
-    HookItemQuantity();
-}
-
 void Item_SaveExtraData(const char* path)
 {
     FILE* f;
@@ -414,4 +439,40 @@ void Item_LoadExtraData(const char* path)
     }
     fread(gInventoryItemQuantity, sizeof(u8), ITEM_COUNT, f);
     fclose(f);
+}
+
+static void Item_RegisterAPI(void)
+{
+
+}
+
+void Init_Items(void)
+{
+    void* Item_GetDatabaseEntryTrampoline;
+
+    LoadItems();
+    AddWotlItems();
+
+    Item_GetDatabaseEntryTrampoline = Hook_CreateTrampoline(Item_GetDatabaseEntry);
+
+    HookFunctionRel(0xe9f8a78, Item_IsValid);
+    HookFunctionRel(0x02b4980, Item_GetData);
+    HookFunctionRel(0xe978db8, Item_GetCategory);
+    HookFunctionRel(0xe9983d0, Item_GetWeaponData);
+    HookFunctionRel(0xe99fff0, Item_GetShieldData);
+    HookFunctionRel(0xe9da940, Item_GetChemistData);
+    HookFunctionRel(0xe9bae08, Item_GetArmorData);
+    HookFunctionRel(0xe9d490e, Item_GetAccessoryData);
+    HookFunctionRel(0x02b4668, Item_GetName);
+
+    Hook_Call32Rel(0x1081dd, Item_GetDatabaseEntryTrampoline);
+    Hook_Call32Rel(0x29b849, Item_GetDatabaseEntryTrampoline);
+    Hook_Call32Rel(0x29cbcc, Item_GetDatabaseEntryTrampoline);
+    Hook_Call32Rel(0x2c3c39, Item_GetDatabaseEntryTrampoline);
+    Hook_Call32Rel(0x2f0690, Item_GetDatabaseEntryTrampoline);
+    Hook_Call32Rel(0x2f069b, Item_GetDatabaseEntryTrampoline);
+
+    HookItemQuantity();
+
+    Item_RegisterAPI();
 }
