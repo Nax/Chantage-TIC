@@ -1,10 +1,14 @@
+#define _CRT_SECURE_NO_WARNINGS
 #include <windows.h>
 #include <chantage/chantage.h>
 #include <stdio.h>
+#include <lua.h>
+#include <lauxlib.h>
 
 #define MAX_LINES 200
 #define LINE_EDIT_BUFFER_SIZE 1024
 
+extern lua_State* gLuaState;
 extern HWND gGameWindow;
 static ATOM sConsoleClass;
 static HWND sConsoleWindow;
@@ -41,6 +45,66 @@ void Console_WriteLineWide(const WCHAR* line)
     }
 }
 
+static void Console_Exec(const WCHAR* line)
+{
+    static char sBuffer[4096];
+    static WCHAR sBufferWide[1024];
+
+    /* Try to compile as 'return ' + expr */
+    strcpy(sBuffer, "return ");
+    int prefixLen = (int)strlen(sBuffer);
+    int exprLen = WideCharToMultiByte(CP_UTF8, 0, line, (int)wcslen(line), sBuffer + prefixLen, sizeof(sBuffer) - prefixLen - 1, NULL, NULL);
+    sBuffer[prefixLen + exprLen] = '\0';
+
+    /* Load the string */
+    if (luaL_loadstring(gLuaState, sBuffer) != LUA_OK)
+    {
+        /* Pop error */
+        lua_pop(gLuaState, 1);
+
+        /* Fallback to normal execution */
+        int normalLen = WideCharToMultiByte(CP_UTF8, 0, line, (int)wcslen(line), sBuffer, sizeof(sBuffer) - 1, NULL, NULL);
+        sBuffer[normalLen] = '\0';
+        if (luaL_loadstring(gLuaState, sBuffer) != LUA_OK)
+        {
+            const char* errorMsg = lua_tostring(gLuaState, -1);
+            swprintf(sBufferWide, 1024, L"Lua Error: %S", errorMsg);
+            Console_WriteLineWide(sBufferWide);
+            lua_pop(gLuaState, 1);
+            return;
+        }
+    }
+
+    /* We have some valid lua, execute */
+    if (lua_pcall(gLuaState, 0, LUA_MULTRET, 0) != LUA_OK)
+    {
+        const char* errorMsg = lua_tostring(gLuaState, -1);
+        swprintf(sBufferWide, 1024, L"Lua Error: %S", errorMsg);
+        Console_WriteLineWide(sBufferWide);
+        lua_pop(gLuaState, 1);
+        return;
+    }
+
+    /* Handle return values */
+    int returnCount = lua_gettop(gLuaState);
+    if (returnCount > 0)
+    {
+        for (int i = 1; i <= returnCount; ++i)
+        {
+            size_t len;
+            const char* returnStr = luaL_tolstring(gLuaState, i, &len);
+            if (returnStr)
+            {
+                swprintf(sBufferWide, 1024, L"%S", returnStr);
+                Console_WriteLineWide(sBufferWide);
+            }
+            lua_pop(gLuaState, 1);
+        }
+    }
+
+    lua_settop(gLuaState, 0);
+}
+
 static void Console_Run(void)
 {
     /* Check for empty command */
@@ -65,7 +129,7 @@ static void Console_Run(void)
     Console_WriteLineWide(sLineEditBuffer);
 
     /* Execute */
-    /* TODO */
+    Console_Exec(sLineEditBuffer);
 
     /* Clear input buffer */
     sLineEditLength = 0;
