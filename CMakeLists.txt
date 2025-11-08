@@ -8,5 +8,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
+find_package(Lua REQUIRED)
+
 include_directories(${CMAKE_SOURCE_DIR}/include)
 add_subdirectory(src)
