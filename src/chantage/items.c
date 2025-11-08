@@ -184,6 +184,17 @@ static void Item_PatchCount(void)
     WriteProtectedRel32(0x391b47, sItemsCount);
     WriteProtectedRel32(0x39519d, sItemsCount);
     WriteProtectedRel32(0x39527a, sItemsCount);
+
+    /* Item quantity stuff */
+    WriteProtectedRel32(0x0ffe1b, sItemsCount - 1);
+    WriteProtectedRel32(0x0fff09, sItemsCount - 1);
+    WriteProtectedRel32(0x152ce1, sItemsCount);
+    WriteProtectedRel32(0x2294f9, sItemsCount);
+    WriteProtectedRel32(0x280346, sItemsCount); /* Warning: also checks another table, should be rerouted */
+    WriteProtectedRel32(0x28079b, sItemsCount - 2);
+    WriteProtectedRel32(0x2c1d6d, sItemsCount);
+    WriteProtectedRel32(0x2d1fcf, sItemsCount);
+    WriteProtectedRel32(0x303ba3, sItemsCount);
 }
 
 uint16_t Item_Alloc(void)
