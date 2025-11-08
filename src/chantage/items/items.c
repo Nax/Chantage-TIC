@@ -4,7 +4,9 @@
 #include <string.h>
 #include <stdio.h>
 
-#define ITEM_COUNT 0x200
+#define ITEM_COUNT_VANILLA  0x105
+#define ITEM_COUNT          0x200
+#define ITEM_COUNT_EXTRA    (ITEM_COUNT - ITEM_COUNT_VANILLA)
 
 static uint16_t sItemsCount = 0x105;
 static ItemData sItems[ITEM_COUNT];
@@ -13,60 +15,8 @@ static char* sItemDescriptionOverrides[ITEM_COUNT];
 static char* sItemNameOverride[ITEM_COUNT];
 static u8* gInventoryItemQuantity;
 
-static const char* kVanillaKeys[] = {
-    "fft:none",
-    "fft:dagger",
-    "fft:mythril_knife",
-    "fft:blind_knife",
-    "fft:mage_masher",
-    "fft:platinum_dagger",
-    "fft:main_gauche",
-    "fft:orichalcum_dirk",
-    "fft:assassins_dagger",
-    "fft:air_knife",
-    "fft:zwil_straightblade",
-    "fft:ninja_blade",
-    "fft:kunai",
-    "fft:kodachi",
-    "fft:ninja_longblade",
-    "fft:spellbinder",
-    "fft:sasukes_blade",
-    "fft:iga_blade",
-    "fft:koga_blade",
-    "fft:broadsword",
-    "fft:longsword",
-    "fft:iron_sword",
-    "fft:mythril_sword",
-    "fft:blood_sword",
-    "fft:coral_sword",
-    "fft:ancient_sword",
-    "fft:sleep_blade",
-    "fft:platinum_sword",
-    "fft:diamond_sword",
-    "fft:icebrand",
-    "fft:runeblade",
-    "fft:nagnarok",
-    "fft:materia_blade",
-    "fft:defender",
-    "fft:save_the_queen",
-    "fft:excalibur",
-    "fft:ragnarok",
-    "fft:chaos_blade",
-    "fft:ashura",
-    "fft:kotesu",
-    "fft:osafune",
-    "fft:murasame",
-    "fft:ama_no_murakumo",
-    "fft:kiyomori",
-    "fft:murasama",
-    "fft:kiku_ichimonji",
-    "fft:masamune",
-    "fft:chirijiraden",
-    "fft:battle_axe",
-    "fft:giants_axe",
-    "fft_slasher",
-    "fft:rod",
-};
+extern const char* kItemVanillaKeys[ITEM_COUNT_VANILLA];
+const char* sItemExtraKeys[ITEM_COUNT_EXTRA];
 
 typedef struct
 {
@@ -96,6 +46,23 @@ ItemDatabaseEntryResolved;
 
 static ItemDatabaseEntryResolved sDatabasePool[4];
 static int sDatabasePoolId = 0;
+
+int Item_Lookup(const char* key)
+{
+    for (int i = 0; i < ITEM_COUNT_VANILLA; ++i)
+    {
+        if (strcmp(key, kItemVanillaKeys[i]) == 0)
+            return i;
+    }
+
+    for (int i = 0; i < (sItemsCount - ITEM_COUNT_VANILLA); ++i)
+    {
+        if (sItemExtraKeys[i] && strcmp(key, sItemExtraKeys[i]) == 0)
+            return ITEM_COUNT_VANILLA + i;
+    }
+
+    return -1;
+}
 
 int Item_IsValid(u16 id)
 {
@@ -252,11 +219,15 @@ static void Item_PatchCount(void)
     WriteProtectedRel32(0x303ba3, sItemsCount);
 }
 
-uint16_t Item_Alloc(void)
+uint16_t Item_Alloc(const char* key)
 {
     uint16_t id;
+    char* keyBuf;
 
     id = sItemsCount++;
+    keyBuf = Chantage_Alloc(strlen(key) + 1);
+    strcpy(keyBuf, key);
+    sItemExtraKeys[id - ITEM_COUNT_VANILLA] = keyBuf;
     Item_PatchCount();
 
     return id;
@@ -282,7 +253,7 @@ static void AddWotlItems(void)
     uint16_t itemId;
 
     /* Vanguard helm */
-    itemId = Item_Alloc();
+    itemId = Item_Alloc("wotl:vanguard_helm");
     item = Item_GetData(itemId);
     item->palette = 0x03;
     item->gfx = 0x55;
