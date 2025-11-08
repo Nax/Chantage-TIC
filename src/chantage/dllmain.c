@@ -2,6 +2,8 @@
 #include <stdint.h>
 #include <chantage/chantage.h>
 
+HWND gGameWindow;
+
 void ChantageInit(void);
 
 static HWND (*CreateWindowExA_Original)(
@@ -34,8 +36,13 @@ HWND CreateWindowExA_HOOK(
   LPVOID    lpParam
 )
 {
+    HWND window;
+
+    window = CreateWindowExA(dwExStyle, lpClassName, lpWindowName, dwStyle, X, Y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
+    if (strcmp(lpClassName, "SplashClass") != 0)
+        gGameWindow = window;
     ChantageInit();
-    return CreateWindowExA(dwExStyle, lpClassName, lpWindowName, dwStyle, X, Y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
+    return window;
 }
 
 BOOL IsDebuggerPresent_HOOK(void)
