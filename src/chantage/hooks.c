@@ -134,12 +134,6 @@ void* Hook_CreateTrampoline(void* target)
     return tramp;
 }
 
-void* Hook_CreateTrampolineRel(uint32_t off)
-{
-    void* target = BaseRelPtr(off);
-    return Hook_CreateTrampoline(target);
-}
-
 void Hook_Call32(void* target, void* hook)
 {
     uint64_t delta;

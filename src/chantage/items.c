@@ -1,3 +1,4 @@
+#define _CRT_SECURE_NO_WARNINGS 1
 #include <chantage/chantage.h>
 #include <stdlib.h>
 #include <string.h>
@@ -6,8 +7,38 @@
 
 static ItemData sItems[ITEM_COUNT];
 static ItemSubData sItemSubData[ITEM_COUNT];
-static char* sItemDescriptionsOverrides[ITEM_COUNT];
+static char* sItemDescriptionOverrides[ITEM_COUNT];
+static char* sItemNameOverride[ITEM_COUNT];
 static uint16_t sItemsCount = 0x105;
+
+typedef struct
+{
+    u32 flags;
+    s32 nameRel;
+    s32 nameSingularRel;
+    s32 namePluralRel;
+    s32 descriptionRel;
+    s32 name2Rel;
+    u8 unk1[0x04];
+    u32 statusEffectId;
+    u32 comment;
+    u32 categoryId;
+    u32 sortOrder;
+    u8  unk2[1];
+    u8  isRandomDamage;
+    u8  pad[2];
+}
+ItemDatabaseEntry;
+
+typedef struct
+{
+    ItemDatabaseEntry entry;
+    char buffer[1024];
+}
+ItemDatabaseEntryResolved;
+
+static ItemDatabaseEntryResolved sDatabasePool[4];
+static int sDatabasePoolId = 0;
 
 int Item_IsValid(u16 id)
 {
@@ -191,41 +222,97 @@ static void AddWotlItems(void)
     item->price = 10;
     item->type = ITEM_TYPE_HELMET;
     item->shop = 0x14;
+
     armor = Item_GetArmorData(itemId);
     armor->hp = 150;
     armor->mp = 20;
-    sItemDescriptionsOverrides[itemId] = "A test helmet!";
+
+    sItemNameOverride[itemId] = "Vanguard Helm";
+    sItemDescriptionOverrides[itemId] = "A test helmet!";
 }
 
-void* Item_GetDescriptionDisplay(u16 itemId)
+ItemDatabaseEntry* Item_GetDatabaseEntry(u16 itemId)
 {
-    static u32 sBuffer[5];
-    void* (*sOriginalFunc)(u16 itemId);
-    char* override;
-    void* ret;
+    ItemDatabaseEntry* (*sOriginalFunc)(u16 itemId);
+    ItemDatabaseEntryResolved* pool;
+    ItemDatabaseEntry* orig;
+    const char* ptrName;
+    const char* ptrDesc;
+    const char* o;
+    int cursorBuf;
 
-    override = NULL;
+    /* Resolve original function and original entry */
+    sOriginalFunc = BaseRelPtr(0xf7510);
+    orig = sOriginalFunc(itemId);
+
+    /* Reserve an entry in the pool */
+    pool = &sDatabasePool[sDatabasePoolId];
+    sDatabasePoolId = (sDatabasePoolId + 1) % 4;
+    memset(pool, 0, sizeof(*pool));
+
+    /* Copy the original data (if any) */
+    if (orig)
+    {
+        memcpy(&pool->entry, orig, sizeof(ItemDatabaseEntry));
+        pool->entry.nameRel = 0;
+        pool->entry.descriptionRel = 0;
+        pool->entry.nameSingularRel = 0;
+        pool->entry.namePluralRel = 0;
+        pool->entry.name2Rel = 0;
+
+        if (orig->nameRel)
+            ptrName = (const char*)orig + orig->nameRel + 4;
+        if (orig->descriptionRel)
+            ptrDesc = (const char*)orig + orig->descriptionRel + 4;
+    }
+
     if (itemId < sItemsCount)
-        override = sItemDescriptionsOverrides[itemId];
-
-    if (override)
     {
-        sBuffer[4] = (u64)(override - (char*)sBuffer - 4);
-        ret = sBuffer;
-    }
-    else
-    {
-        sOriginalFunc = BaseRelPtr(0xf7510);
-        ret = sOriginalFunc(itemId);
+        o = sItemNameOverride[itemId];
+        if (o)
+            ptrName = o;
+        o = sItemDescriptionOverrides[itemId];
+        if (o)
+            ptrDesc = o;
     }
 
-    return ret;
+    /* Copy the name in the buffer */
+    if (ptrName)
+    {
+        pool->entry.nameRel = (pool->buffer + cursorBuf) - (char*)&pool->entry - 4;
+        strcpy(pool->buffer + cursorBuf, ptrName);
+        cursorBuf += strlen(ptrName) + 1;
+    }
+
+    if (ptrDesc)
+    {
+        pool->entry.descriptionRel = (pool->buffer + cursorBuf) - (char*)&pool->entry - 4;
+        strcpy(pool->buffer + cursorBuf, ptrDesc);
+        cursorBuf += strlen(ptrDesc) + 1;
+    }
+
+    /* Return the computed entry */
+    return &pool->entry;
+}
+
+const char* Item_GetName(u16 itemId)
+{
+    ItemDatabaseEntry* entry;
+
+    entry = Item_GetDatabaseEntry(itemId);
+    if (!entry || !entry->nameRel)
+        return NULL;
+    return (const char*)entry + entry->nameRel + 4;
 }
 
 void Init_Items(void)
 {
+    void* Item_GetDatabaseEntryTrampoline;
+
     LoadItems();
     AddWotlItems();
+
+    Item_GetDatabaseEntryTrampoline = Hook_CreateTrampoline(Item_GetDatabaseEntry);
 
     HookFunctionRel(0xe9f8a78, Item_IsValid);
     HookFunctionRel(0x02b4980, Item_GetData);
@@ -235,6 +322,12 @@ void Init_Items(void)
     HookFunctionRel(0xe9da940, Item_GetChemistData);
     HookFunctionRel(0xe9bae08, Item_GetArmorData);
     HookFunctionRel(0xe9d490e, Item_GetAccessoryData);
-    Hook_CallTrampoline32Rel(0x29cbcc, Item_GetDescriptionDisplay);
-    //HookFunctionRel(0x00f7510, Item_GetDescription);
+    HookFunctionRel(0x02b4668, Item_GetName);
+
+    Hook_Call32Rel(0x1081dd, Item_GetDatabaseEntryTrampoline);
+    Hook_Call32Rel(0x29b849, Item_GetDatabaseEntryTrampoline);
+    Hook_Call32Rel(0x29cbcc, Item_GetDatabaseEntryTrampoline);
+    Hook_Call32Rel(0x2c3c39, Item_GetDatabaseEntryTrampoline);
+    Hook_Call32Rel(0x2f0690, Item_GetDatabaseEntryTrampoline);
+    Hook_Call32Rel(0x2f069b, Item_GetDatabaseEntryTrampoline);
 }
