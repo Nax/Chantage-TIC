@@ -1,5 +1,6 @@
 #include <windows.h>
 #include <chantage/chantage.h>
+#include <stdio.h>
 
 #define MAX_LINES 200
 #define LINE_EDIT_BUFFER_SIZE 1024
@@ -11,6 +12,7 @@ static HWND sConsoleWindow;
 static PWCH sLastLines[MAX_LINES];
 static WCHAR sLineEditBuffer[LINE_EDIT_BUFFER_SIZE];
 static int sLineEditLength = 0;
+static BYTE sKeyboardState[256] = {0};
 
 void Console_WriteLineWide(const WCHAR* line)
 {
@@ -140,6 +142,32 @@ static LRESULT CALLBACK Console_WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPAR
         }
         case WM_KEYDOWN:
         {
+            // Update keyboard state - mark key as pressed
+            sKeyboardState[wParam] = 0x80;
+
+            // Also update generic modifier keys when specific ones are pressed
+            if (wParam == VK_LSHIFT || wParam == VK_RSHIFT)
+                sKeyboardState[VK_SHIFT] = 0x80;
+            if (wParam == VK_LCONTROL || wParam == VK_RCONTROL)
+                sKeyboardState[VK_CONTROL] = 0x80;
+            if (wParam == VK_LMENU || wParam == VK_RMENU)
+                sKeyboardState[VK_MENU] = 0x80;
+
+            // Handle Caps Lock toggle
+            if (wParam == VK_CAPITAL)
+            {
+                sKeyboardState[VK_CAPITAL] ^= 0x01; // Toggle the low bit
+            }
+
+            // Don't process modifier keys as regular keys
+            if (wParam == VK_SHIFT || wParam == VK_LSHIFT || wParam == VK_RSHIFT ||
+                wParam == VK_CONTROL || wParam == VK_LCONTROL || wParam == VK_RCONTROL ||
+                wParam == VK_MENU || wParam == VK_LMENU || wParam == VK_RMENU ||
+                wParam == VK_CAPITAL)
+            {
+                return 0; // Just update state, don't process further
+            }
+
             if (wParam == VK_RETURN)
             {
                 Console_Run();
@@ -156,11 +184,11 @@ static LRESULT CALLBACK Console_WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPAR
             }
             else
             {
-                // Translate key to character using current keyboard state
-                BYTE keyState[256];
-                GetKeyboardState(keyState);
+                // Translate key to character using our maintained keyboard state
                 WCHAR result[4];
-                int count = ToUnicode((UINT)wParam, MapVirtualKey((UINT)wParam, MAPVK_VK_TO_VSC), keyState, result, 4, 0);
+                UINT scanCode = MapVirtualKey((UINT)wParam, MAPVK_VK_TO_VSC);
+                int count = ToUnicode((UINT)wParam, scanCode, sKeyboardState, result, 4, 0);
+
                 if (count > 0)
                 {
                     // Add translated characters to input buffer
@@ -174,6 +202,30 @@ static LRESULT CALLBACK Console_WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPAR
                     }
                     InvalidateRect(hwnd, NULL, TRUE);
                 }
+            }
+            return 0;
+        }
+        case WM_KEYUP:
+        {
+            // Update keyboard state - mark key as released
+            sKeyboardState[wParam] = 0x00;
+
+            // Also clear generic modifier keys when specific ones are released
+            // But only if BOTH left and right are released
+            if (wParam == VK_LSHIFT || wParam == VK_RSHIFT)
+            {
+                if (sKeyboardState[VK_LSHIFT] == 0 && sKeyboardState[VK_RSHIFT] == 0)
+                    sKeyboardState[VK_SHIFT] = 0x00;
+            }
+            if (wParam == VK_LCONTROL || wParam == VK_RCONTROL)
+            {
+                if (sKeyboardState[VK_LCONTROL] == 0 && sKeyboardState[VK_RCONTROL] == 0)
+                    sKeyboardState[VK_CONTROL] = 0x00;
+            }
+            if (wParam == VK_LMENU || wParam == VK_RMENU)
+            {
+                if (sKeyboardState[VK_LMENU] == 0 && sKeyboardState[VK_RMENU] == 0)
+                    sKeyboardState[VK_MENU] = 0x00;
             }
             return 0;
         }
