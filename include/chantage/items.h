@@ -128,4 +128,7 @@ ItemArmorData*      Item_GetArmorData(uint16_t itemId);
 ItemAccessoryData*  Item_GetAccessoryData(uint16_t itemId);
 ItemChemistData*    Item_GetChemistData(uint16_t itemId);
 
+void Item_SaveExtraData(const char* path);
+void Item_LoadExtraData(const char* path);
+
 #endif

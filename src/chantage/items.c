@@ -2,6 +2,7 @@
 #include <chantage/chantage.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 #define ITEM_COUNT 0x200
 
@@ -384,4 +385,33 @@ void Init_Items(void)
     Hook_Call32Rel(0x2f069b, Item_GetDatabaseEntryTrampoline);
 
     HookItemQuantity();
+}
+
+void Item_SaveExtraData(const char* path)
+{
+    FILE* f;
+    char buffer[_MAX_PATH];
+
+    snprintf(buffer, _MAX_PATH, "%s\\ItemQty.bin", path);
+    f = fopen(buffer, "wb");
+    if (!f)
+        return;
+    fwrite(gInventoryItemQuantity, sizeof(u8), ITEM_COUNT, f);
+    fclose(f);
+}
+
+void Item_LoadExtraData(const char* path)
+{
+    FILE* f;
+    char buffer[_MAX_PATH];
+
+    snprintf(buffer, _MAX_PATH, "%s\\ItemQty.bin", path);
+    f = fopen(buffer, "rb");
+    if (!f)
+    {
+        memset(gInventoryItemQuantity + 0x105, 0, ITEM_COUNT - 0x105);
+        return;
+    }
+    fread(gInventoryItemQuantity, sizeof(u8), ITEM_COUNT, f);
+    fclose(f);
 }

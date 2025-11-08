@@ -1,8 +1,11 @@
 #include <windows.h>
 #include <chantage/chantage.h>
 
+void Init_Game(void);
+
 static void ChantageInitImpl(void)
 {
+    Init_Game();
     Init_Items();
 }
 
