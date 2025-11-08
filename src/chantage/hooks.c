@@ -194,3 +194,17 @@ void Hook_InstrRef32Rel(uint32_t off, void* ref, int size)
     void* target = BaseRelPtr(off);
     Hook_InstrRef32(target, ref, size);
 }
+
+void Hook_InstrRefBase32(void* target, void* ref, int size)
+{
+    uint32_t delta;
+
+    delta = (uint64_t)ref - (uint64_t)BaseRelPtr(0);
+    WriteProtected32((char*)target + size - 4, delta);
+}
+
+void Hook_InstrRefBase32Rel(uint32_t off, void* ref, int size)
+{
+    void* target = BaseRelPtr(off);
+    Hook_InstrRefBase32(target, ref, size);
+}

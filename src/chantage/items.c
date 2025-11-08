@@ -327,6 +327,23 @@ static void HookItemQuantity(void)
     Hook_InstrRef32Rel(0x02caa87, gInventoryItemQuantity, 7);
     Hook_InstrRef32Rel(0x02d1ee1, gInventoryItemQuantity, 7);
     Hook_InstrRef32Rel(0x0391545, gInventoryItemQuantity, 7);
+
+    Hook_InstrRefBase32Rel(0x0224e37, gInventoryItemQuantity, 8);
+    Hook_InstrRefBase32Rel(0x02f07f6, gInventoryItemQuantity, 8);
+    Hook_InstrRefBase32Rel(0x02c598c, gInventoryItemQuantity, 8);
+    Hook_InstrRefBase32Rel(0x02c1db4, gInventoryItemQuantity, 8);
+    Hook_InstrRefBase32Rel(0x027d7ba, gInventoryItemQuantity, 8);
+    Hook_InstrRefBase32Rel(0x027d6f6, gInventoryItemQuantity, 8);
+    Hook_InstrRefBase32Rel(0x027d819, gInventoryItemQuantity, 8);
+    Hook_InstrRefBase32Rel(0x022950c, gInventoryItemQuantity, 7);
+    Hook_InstrRefBase32Rel(0x027d7d0, gInventoryItemQuantity, 8);
+    Hook_InstrRefBase32Rel(0x027d718, gInventoryItemQuantity, 8);
+    Hook_InstrRefBase32Rel(0x027d82f, gInventoryItemQuantity, 8);
+    Hook_InstrRefBase32Rel(0x0280353, gInventoryItemQuantity, 8);
+    Hook_InstrRefBase32Rel(0x022951a, gInventoryItemQuantity, 7);
+    Hook_InstrRefBase32Rel(0x0222b8b, gInventoryItemQuantity, 8);
+    Hook_InstrRefBase32Rel(0x02e5e93, gInventoryItemQuantity, 8);
+    Hook_InstrRefBase32Rel(0x0275063, gInventoryItemQuantity, 9);
 }
 
 void Init_Items(void)

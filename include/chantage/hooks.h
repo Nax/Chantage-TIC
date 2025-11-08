@@ -29,4 +29,7 @@ void* Hook_AllocNearExecutable(void);
 void Hook_InstrRef32(void* target, void* ref, int size);
 void Hook_InstrRef32Rel(uint32_t off, void* ref, int size);
 
+void Hook_InstrRefBase32(void* target, void* ref, int size);
+void Hook_InstrRefBase32Rel(uint32_t off, void* ref, int size);
+
 #endif
