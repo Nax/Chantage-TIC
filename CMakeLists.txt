@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(Chantage-TIC)
+project(Chantage-TIC C CXX ASM)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

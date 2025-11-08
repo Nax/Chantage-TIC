@@ -20,6 +20,8 @@ void HookFunction(void* target, void* hook);
 void HookFunctionRel(uint32_t off, void* hook);
 
 void Hook_Call32Rel(uint32_t off, void* hook);
+void Hook_InjectCall32(void* target, void* hook, int size);
+void Hook_InjectCall32Rel(uint32_t off, void* hook, int size);
 void* Hook_CreateTrampoline(void* target);
 void Hook_CallTrampoline32Rel(uint32_t off, void* hook);
 

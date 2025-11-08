@@ -149,6 +149,21 @@ void Hook_Call32Rel(uint32_t off, void* hook)
     Hook_Call32(target, hook);
 }
 
+void Hook_InjectCall32(void* target, void* hook, int size)
+{
+    uint8_t buffer[16] = {0xe8, 0, 0, 0, 0, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90};
+    uint64_t delta;
+    delta = (uint64_t)hook - ((uint64_t)target + 5);
+    memcpy(buffer + 1, &delta, sizeof(uint32_t));
+    WriteProtected(target, buffer, size);
+}
+
+void Hook_InjectCall32Rel(uint32_t off, void* hook, int size)
+{
+    void* target = BaseRelPtr(off);
+    Hook_InjectCall32(target, hook, size);
+}
+
 void Hook_CallTrampoline32(void* target, void* hook)
 {
     void* tramp;
