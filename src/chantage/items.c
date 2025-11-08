@@ -2,9 +2,17 @@
 #include <stdlib.h>
 #include <string.h>
 
-static ItemData sItems[512];
-static ItemSubData sItemSubData[512];
+#define ITEM_COUNT 0x200
+
+static ItemData sItems[ITEM_COUNT];
+static ItemSubData sItemSubData[ITEM_COUNT];
+static char* sItemDescriptionsOverrides[ITEM_COUNT];
 static uint16_t sItemsCount = 0x105;
+
+int Item_IsValid(u16 id)
+{
+    return (id != 0xfe && id != 0xff && id < sItemsCount);
+}
 
 static ItemData* Item_GetData(uint16_t itemId)
 {
@@ -120,6 +128,29 @@ static void Item_PatchCount(void)
 
     /* Beware, this is probably a signed offset */
     WriteProtectedRel8(0x280ba6, countLea);
+    WriteProtectedRel32(0x27c2b3, sItemsCount);
+    WriteProtectedRel32(0x281dc9, sItemsCount);
+    WriteProtectedRel32(0x282293, sItemsCount);
+    WriteProtectedRel32(0x284c76, sItemsCount);
+    WriteProtectedRel32(0x285010, sItemsCount);
+    WriteProtectedRel32(0x2a2824, sItemsCount);
+    WriteProtectedRel32(0x2b9796, sItemsCount);
+    WriteProtectedRel32(0x2c003c, sItemsCount);
+    WriteProtectedRel32(0x2c3a90, sItemsCount);
+    WriteProtectedRel32(0x2fd393, sItemsCount);
+    WriteProtectedRel32(0x300bc6, sItemsCount);
+    WriteProtectedRel32(0x318038, sItemsCount);
+    WriteProtectedRel32(0x3181d9, sItemsCount);
+    WriteProtectedRel32(0x32a4cd, sItemsCount);
+    WriteProtectedRel32(0x32a5aa, sItemsCount);
+    WriteProtectedRel32(0x32b116, sItemsCount);
+    WriteProtectedRel32(0x32b295, sItemsCount);
+    WriteProtectedRel32(0x335a36, sItemsCount);
+    WriteProtectedRel32(0x335bd7, sItemsCount);
+    WriteProtectedRel32(0x35b638, sItemsCount);
+    WriteProtectedRel32(0x391b47, sItemsCount);
+    WriteProtectedRel32(0x39519d, sItemsCount);
+    WriteProtectedRel32(0x39527a, sItemsCount);
 }
 
 uint16_t Item_Alloc(void)
@@ -148,17 +179,47 @@ static void LoadItems(void)
 static void AddWotlItems(void)
 {
     ItemData* item;
+    ItemArmorData* armor;
     uint16_t itemId;
 
     /* Vanguard helm */
     itemId = Item_Alloc();
     item = Item_GetData(itemId);
-    item->palette = 3;
+    item->palette = 0x03;
     item->gfx = 0x55;
     item->flags = 0x22;
     item->price = 10;
     item->type = ITEM_TYPE_HELMET;
     item->shop = 0x14;
+    armor = Item_GetArmorData(itemId);
+    armor->hp = 150;
+    armor->mp = 20;
+    sItemDescriptionsOverrides[itemId] = "A test helmet!";
+}
+
+void* Item_GetDescriptionDisplay(u16 itemId)
+{
+    static u32 sBuffer[5];
+    void* (*sOriginalFunc)(u16 itemId);
+    char* override;
+    void* ret;
+
+    override = NULL;
+    if (itemId < sItemsCount)
+        override = sItemDescriptionsOverrides[itemId];
+
+    if (override)
+    {
+        sBuffer[4] = (u64)(override - (char*)sBuffer - 4);
+        ret = sBuffer;
+    }
+    else
+    {
+        sOriginalFunc = BaseRelPtr(0xf7510);
+        ret = sOriginalFunc(itemId);
+    }
+
+    return ret;
 }
 
 void Init_Items(void)
@@ -166,11 +227,14 @@ void Init_Items(void)
     LoadItems();
     AddWotlItems();
 
-    HookFunctionRel(0x02b4980, (void*)Item_GetData);
-    HookFunctionRel(0xe978db8, (void*)Item_GetCategory);
-    HookFunctionRel(0xe9983d0, (void*)Item_GetWeaponData);
-    HookFunctionRel(0xe99fff0, (void*)Item_GetShieldData);
-    HookFunctionRel(0xe9da940, (void*)Item_GetChemistData);
-    HookFunctionRel(0xe9bae08, (void*)Item_GetArmorData);
-    HookFunctionRel(0xe9d490e, (void*)Item_GetAccessoryData);
+    HookFunctionRel(0xe9f8a78, Item_IsValid);
+    HookFunctionRel(0x02b4980, Item_GetData);
+    HookFunctionRel(0xe978db8, Item_GetCategory);
+    HookFunctionRel(0xe9983d0, Item_GetWeaponData);
+    HookFunctionRel(0xe99fff0, Item_GetShieldData);
+    HookFunctionRel(0xe9da940, Item_GetChemistData);
+    HookFunctionRel(0xe9bae08, Item_GetArmorData);
+    HookFunctionRel(0xe9d490e, Item_GetAccessoryData);
+    Hook_CallTrampoline32Rel(0x29cbcc, Item_GetDescriptionDisplay);
+    //HookFunctionRel(0x00f7510, Item_GetDescription);
 }
