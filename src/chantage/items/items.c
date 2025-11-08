@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <lua.h>
+#include <lauxlib.h>
 
 #define ITEM_COUNT_VANILLA  0x105
 #define ITEM_COUNT          0x200
@@ -15,6 +17,7 @@ static char* sItemDescriptionOverrides[ITEM_COUNT];
 static char* sItemNameOverride[ITEM_COUNT];
 static u8* gInventoryItemQuantity;
 
+extern lua_State* gLuaState;
 extern const char* kItemVanillaKeys[ITEM_COUNT_VANILLA];
 const char* sItemExtraKeys[ITEM_COUNT_EXTRA];
 
@@ -412,9 +415,44 @@ void Item_LoadExtraData(const char* path)
     fclose(f);
 }
 
+static int ItemAPI_id(lua_State* L)
+{
+    /* Handle integers */
+    if (lua_type(L, 1) == LUA_TNUMBER)
+    {
+        int itemId = (int)luaL_checkinteger(L, 1);
+        if (itemId < 0 || itemId >= sItemsCount)
+            lua_pushnil(L);
+        else
+            lua_pushinteger(L, itemId);
+        return 1;
+    }
+
+    /* If not, check if it's a string */
+    if (lua_type(L, 1) == LUA_TSTRING)
+    {
+        const char* key = lua_tostring(L, 1);
+        int itemId = Item_Lookup(key);
+        if (itemId < 0)
+            lua_pushnil(L);
+        else
+            lua_pushinteger(L, itemId);
+        return 1;
+    }
+
+    /* Type error */
+    lua_pushnil(L);
+    return 1;
+}
+
 static void Item_RegisterAPI(void)
 {
+    lua_newtable(gLuaState);
 
+    lua_pushcfunction(gLuaState, ItemAPI_id);
+    lua_setfield(gLuaState, -2, "id");
+
+    lua_setglobal(gLuaState, "Item");
 }
 
 void Init_Items(void)
