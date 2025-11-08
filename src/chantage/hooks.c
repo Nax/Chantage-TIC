@@ -96,7 +96,7 @@ static uint64_t roundPageUp(uint64_t addr)
     return (addr + 0xfff) & ~0xfffULL;
 }
 
-static void* Hook_AllocNearExecutable(void)
+void* Hook_AllocNearExecutable(void)
 {
     uint64_t addr;
     uint64_t addrMin;
@@ -179,4 +179,18 @@ void Hook_CallTrampoline32Rel(uint32_t off, void* hook)
 {
     void* target = BaseRelPtr(off);
     Hook_CallTrampoline32(target, hook);
+}
+
+void Hook_InstrRef32(void* target, void* ref, int size)
+{
+    uint32_t delta;
+
+    delta = (uint64_t)ref - ((uint64_t)target + size);
+    WriteProtected32((char*)target + size - 4, delta);
+}
+
+void Hook_InstrRef32Rel(uint32_t off, void* ref, int size)
+{
+    void* target = BaseRelPtr(off);
+    Hook_InstrRef32(target, ref, size);
 }

@@ -11,7 +11,7 @@ static char* sItemDescriptionOverrides[ITEM_COUNT];
 static char* sItemNameOverride[ITEM_COUNT];
 static uint16_t sItemsCount = 0x105;
 
-u8 gInventoryItemQuantity[ITEM_COUNT];
+static u8* gInventoryItemQuantity;
 
 typedef struct
 {
@@ -307,29 +307,26 @@ const char* Item_GetName(u16 itemId)
     return (const char*)entry + entry->nameRel + 4;
 }
 
-extern void Item_ASM_LoadInventoryItemQuantityPtr_RCX;
-extern void Item_ASM_LoadInventoryItemQuantityPtr_RDX;
-
 static void HookItemQuantity(void)
 {
-    void* Item_ASM_LoadInventoryItemQuantityPtr_RCX_Trampoline;
-    void* Item_ASM_LoadInventoryItemQuantityPtr_RDX_Trampoline;
+    gInventoryItemQuantity = Hook_AllocNearExecutable();
 
-    Item_ASM_LoadInventoryItemQuantityPtr_RCX_Trampoline = Hook_CreateTrampoline(&Item_ASM_LoadInventoryItemQuantityPtr_RCX);
-    Hook_InjectCall32Rel(0x00ffe96, Item_ASM_LoadInventoryItemQuantityPtr_RCX_Trampoline, 7);
-    Hook_InjectCall32Rel(0x0152ce7, Item_ASM_LoadInventoryItemQuantityPtr_RCX_Trampoline, 7);
-    Hook_InjectCall32Rel(0x0275d04, Item_ASM_LoadInventoryItemQuantityPtr_RCX_Trampoline, 7);
-    Hook_InjectCall32Rel(0x0275efe, Item_ASM_LoadInventoryItemQuantityPtr_RCX_Trampoline, 7);
-    Hook_InjectCall32Rel(0x02cb35f, Item_ASM_LoadInventoryItemQuantityPtr_RCX_Trampoline, 7);
-    Hook_InjectCall32Rel(0x0303bea, Item_ASM_LoadInventoryItemQuantityPtr_RCX_Trampoline, 7);
-    Hook_InjectCall32Rel(0x030b612, Item_ASM_LoadInventoryItemQuantityPtr_RCX_Trampoline, 7);
-
-    Item_ASM_LoadInventoryItemQuantityPtr_RDX_Trampoline = Hook_CreateTrampoline(&Item_ASM_LoadInventoryItemQuantityPtr_RDX);
-    Hook_InjectCall32Rel(0x0205fbe, Item_ASM_LoadInventoryItemQuantityPtr_RDX_Trampoline, 7);
-    Hook_InjectCall32Rel(0x0207f22, Item_ASM_LoadInventoryItemQuantityPtr_RDX_Trampoline, 7);
-    Hook_InjectCall32Rel(0x02caa87, Item_ASM_LoadInventoryItemQuantityPtr_RDX_Trampoline, 7);
-    Hook_InjectCall32Rel(0x02d1ee1, Item_ASM_LoadInventoryItemQuantityPtr_RDX_Trampoline, 7);
-    Hook_InjectCall32Rel(0x0391545, Item_ASM_LoadInventoryItemQuantityPtr_RDX_Trampoline, 7);
+    Hook_InstrRef32Rel(0x030b2ea, gInventoryItemQuantity, 7);
+    Hook_InstrRef32Rel(0x00fff24, gInventoryItemQuantity, 7);
+    Hook_InstrRef32Rel(0x01f36af, gInventoryItemQuantity, 7);
+    Hook_InstrRef32Rel(0x02807af, gInventoryItemQuantity, 7);
+    Hook_InstrRef32Rel(0x00ffe96, gInventoryItemQuantity, 7);
+    Hook_InstrRef32Rel(0x0152ce7, gInventoryItemQuantity, 7);
+    Hook_InstrRef32Rel(0x0275d04, gInventoryItemQuantity, 7);
+    Hook_InstrRef32Rel(0x0275efe, gInventoryItemQuantity, 7);
+    Hook_InstrRef32Rel(0x02cb35f, gInventoryItemQuantity, 7);
+    Hook_InstrRef32Rel(0x0303bea, gInventoryItemQuantity, 7);
+    Hook_InstrRef32Rel(0x030b612, gInventoryItemQuantity, 7);
+    Hook_InstrRef32Rel(0x0205fbe, gInventoryItemQuantity, 7);
+    Hook_InstrRef32Rel(0x0207f22, gInventoryItemQuantity, 7);
+    Hook_InstrRef32Rel(0x02caa87, gInventoryItemQuantity, 7);
+    Hook_InstrRef32Rel(0x02d1ee1, gInventoryItemQuantity, 7);
+    Hook_InstrRef32Rel(0x0391545, gInventoryItemQuantity, 7);
 }
 
 void Init_Items(void)

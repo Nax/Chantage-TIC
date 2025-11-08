@@ -24,5 +24,9 @@ void Hook_InjectCall32(void* target, void* hook, int size);
 void Hook_InjectCall32Rel(uint32_t off, void* hook, int size);
 void* Hook_CreateTrampoline(void* target);
 void Hook_CallTrampoline32Rel(uint32_t off, void* hook);
+void* Hook_AllocNearExecutable(void);
+
+void Hook_InstrRef32(void* target, void* ref, int size);
+void Hook_InstrRef32Rel(uint32_t off, void* ref, int size);
 
 #endif
