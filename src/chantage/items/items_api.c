@@ -55,6 +55,39 @@ static int ItemAPI_Func_ItemKey(lua_State* L)
     return 1;
 }
 
+static int ItemAPI_Func_InventoryCount(lua_State* L)
+{
+    int id;
+    int count;
+
+    id = ItemAPI_Lookup(L, 1);
+    count = Item_InventoyCount((u16)id);
+    lua_pushinteger(L, count);
+    return 1;
+}
+
+static int ItemAPI_Func_InventoryAdd(lua_State* L)
+{
+    int id;
+    int quantity;
+
+    id = ItemAPI_Lookup(L, 1);
+    quantity = (int)luaL_checkinteger(L, 2);
+    Item_InventoryAdd((u16)id, quantity);
+    return 0;
+}
+
+static int ItemAPI_Func_InventorySet(lua_State* L)
+{
+    int id;
+    int quantity;
+
+    id = ItemAPI_Lookup(L, 1);
+    quantity = (int)luaL_checkinteger(L, 2);
+    Item_InventorySet((u16)id, quantity);
+    return 0;
+}
+
 void ItemAPI_Register(void)
 {
     lua_newtable(gLuaState);
@@ -64,6 +97,15 @@ void ItemAPI_Register(void)
 
     lua_pushcfunction(gLuaState, ItemAPI_Func_ItemKey);
     lua_setfield(gLuaState, -2, "key");
+
+    lua_pushcfunction(gLuaState, ItemAPI_Func_InventoryCount);
+    lua_setfield(gLuaState, -2, "inventory_count");
+
+    lua_pushcfunction(gLuaState, ItemAPI_Func_InventoryAdd);
+    lua_setfield(gLuaState, -2, "inventory_add");
+
+    lua_pushcfunction(gLuaState, ItemAPI_Func_InventorySet);
+    lua_setfield(gLuaState, -2, "inventory_set");
 
     lua_setglobal(gLuaState, "Item");
 }

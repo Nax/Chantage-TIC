@@ -430,6 +430,38 @@ void Item_LoadExtraData(const char* path)
     fclose(f);
 }
 
+int  Item_InventoyCount(u16 itemId)
+{
+    if (!Item_IsValid(itemId))
+        return 0;
+    return gInventoryItemQuantity[itemId];
+}
+
+void Item_InventoryAdd(u16 itemId, int quantity)
+{
+    int qty;
+
+    if (!Item_IsValid(itemId))
+        return;
+    qty = gInventoryItemQuantity[itemId] + quantity;
+    if (qty > 99)
+        qty = 99;
+    if (qty < 0)
+        qty = 0;
+    gInventoryItemQuantity[itemId] = (u8)qty;
+}
+
+void Item_InventorySet(u16 itemId, int quantity)
+{
+    if (!Item_IsValid(itemId))
+        return;
+    if (quantity > 99)
+        quantity = 99;
+    if (quantity < 0)
+        quantity = 0;
+    gInventoryItemQuantity[itemId] = (u8)quantity;
+}
+
 void ItemAPI_Register(void);
 
 void Init_Items(void)

@@ -135,4 +135,8 @@ int             Item_Count(void);
 int             Item_Lookup(const char* key);
 const char*     Item_ReverseLookup(u16 id);
 
+int  Item_InventoyCount(u16 itemId);
+void Item_InventoryAdd(u16 itemId, int quantity);
+void Item_InventorySet(u16 itemId, int quantity);
+
 #endif
