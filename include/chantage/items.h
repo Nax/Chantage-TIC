@@ -128,6 +128,8 @@ ItemArmorData*      Item_GetArmorData(uint16_t itemId);
 ItemAccessoryData*  Item_GetAccessoryData(uint16_t itemId);
 ItemChemistData*    Item_GetChemistData(uint16_t itemId);
 
+u16 Item_Alloc(const char* key);
+
 void    Item_SaveExtraData(const char* path);
 void    Item_LoadExtraData(const char* path);
 
@@ -138,5 +140,8 @@ const char*     Item_ReverseLookup(u16 id);
 int  Item_InventoyCount(u16 itemId);
 void Item_InventoryAdd(u16 itemId, int quantity);
 void Item_InventorySet(u16 itemId, int quantity);
+
+void Item_OverrideName(u16 itemId, const char* name);
+void Item_OverrideDescription(u16 itemId, const char* description);
 
 #endif

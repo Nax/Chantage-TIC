@@ -264,29 +264,31 @@ static void LoadItems(void)
         memcpy(&sItems[i + 0x100], &srcItems[i], sizeof(ItemData));
 }
 
-static void AddWotlItems(void)
+void Item_OverrideName(u16 itemId, const char* name)
 {
-    ItemData* item;
-    ItemArmorData* armor;
-    uint16_t itemId;
+    char* buf;
 
-    /* Vanguard helm */
-    itemId = Item_Alloc("wotl:vanguard_helm");
-    item = Item_GetData(itemId);
-    item->palette = 0x03;
-    item->gfx = 0x55;
-    item->flags = 0x22;
-    item->price = 10;
-    item->type = ITEM_TYPE_HELMET;
-    item->shop = 0x14;
-
-    armor = Item_GetArmorData(itemId);
-    armor->hp = 150;
-    armor->mp = 20;
-
-    sItemNameOverride[itemId] = "Vanguard Helm";
-    sItemDescriptionOverrides[itemId] = "A test helmet!";
+    if (!Item_IsValid(itemId))
+        return;
+    Chantage_Free(sItemNameOverride[itemId]);
+    buf = Chantage_Alloc(strlen(name) + 1);
+    strcpy(buf, name);
+    sItemNameOverride[itemId] = buf;
 }
+
+void Item_OverrideDescription(u16 itemId, const char* description)
+{
+    char* buf;
+
+    if (!Item_IsValid(itemId))
+        return;
+    Chantage_Free(sItemDescriptionOverrides[itemId]);
+    buf = Chantage_Alloc(strlen(description) + 1);
+    strcpy(buf, description);
+    sItemDescriptionOverrides[itemId] = buf;
+}
+
+void AddWotlItems(void);
 
 ItemDatabaseEntry* Item_GetDatabaseEntry(u16 itemId)
 {
