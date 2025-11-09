@@ -378,7 +378,10 @@ void Console_Toggle(void)
 
 LRESULT CALLBACK ConsoleKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
 {
-    if (nCode == HC_ACTION)
+    HWND hwnd;
+
+    hwnd = GetForegroundWindow();
+    if (nCode == HC_ACTION && (hwnd == gGameWindow || hwnd == sConsoleWindow))
     {
         KBDLLHOOKSTRUCT* p = (KBDLLHOOKSTRUCT*)lParam;
 

@@ -50,6 +50,11 @@ ItemDatabaseEntryResolved;
 static ItemDatabaseEntryResolved sDatabasePool[4];
 static int sDatabasePoolId = 0;
 
+int Item_Count(void)
+{
+    return sItemsCount;
+}
+
 int Item_Lookup(const char* key)
 {
     for (int i = 0; i < ITEM_COUNT_VANILLA; ++i)
@@ -65,6 +70,16 @@ int Item_Lookup(const char* key)
     }
 
     return -1;
+}
+
+const char* Item_ReverseLookup(u16 id)
+{
+    if (id < ITEM_COUNT_VANILLA)
+        return kItemVanillaKeys[id];
+    else if (id - ITEM_COUNT_VANILLA < (sItemsCount - ITEM_COUNT_VANILLA))
+        return sItemExtraKeys[id - ITEM_COUNT_VANILLA];
+    else
+        return NULL;
 }
 
 int Item_IsValid(u16 id)
@@ -415,45 +430,7 @@ void Item_LoadExtraData(const char* path)
     fclose(f);
 }
 
-static int ItemAPI_id(lua_State* L)
-{
-    /* Handle integers */
-    if (lua_type(L, 1) == LUA_TNUMBER)
-    {
-        int itemId = (int)luaL_checkinteger(L, 1);
-        if (itemId < 0 || itemId >= sItemsCount)
-            lua_pushnil(L);
-        else
-            lua_pushinteger(L, itemId);
-        return 1;
-    }
-
-    /* If not, check if it's a string */
-    if (lua_type(L, 1) == LUA_TSTRING)
-    {
-        const char* key = lua_tostring(L, 1);
-        int itemId = Item_Lookup(key);
-        if (itemId < 0)
-            lua_pushnil(L);
-        else
-            lua_pushinteger(L, itemId);
-        return 1;
-    }
-
-    /* Type error */
-    lua_pushnil(L);
-    return 1;
-}
-
-static void Item_RegisterAPI(void)
-{
-    lua_newtable(gLuaState);
-
-    lua_pushcfunction(gLuaState, ItemAPI_id);
-    lua_setfield(gLuaState, -2, "id");
-
-    lua_setglobal(gLuaState, "Item");
-}
+void ItemAPI_Register(void);
 
 void Init_Items(void)
 {
@@ -483,5 +460,5 @@ void Init_Items(void)
 
     HookItemQuantity();
 
-    Item_RegisterAPI();
+    ItemAPI_Register();
 }
